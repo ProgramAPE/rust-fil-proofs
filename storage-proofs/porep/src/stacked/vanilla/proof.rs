@@ -524,12 +524,16 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
 
                         // Just add non-final column batches.
                         if !is_final {
+                            info!(">>start add columns");
                             column_tree_builder.add_columns(&columns).expect("failed to add columns");
+                            info!(">>end add columns");
                             continue;
                         };
 
                         // If we get here, this is a final column: build a sub-tree.
+                        info!(">>start add final columns");
                         let (base_data, tree_data) = column_tree_builder.add_final_columns(&columns).expect("failed to add final columns");
+                        info!(">>start add final columns");
                         trace!(
                             "base data len {}, tree data len {}",
                             base_data.len(),
