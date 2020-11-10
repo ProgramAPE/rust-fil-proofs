@@ -461,7 +461,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                                 vec![Vec::with_capacity(chunked_nodes_count); layers];
 
                             info!("start chunked data copy at {}", node_index);
-                            let instant = Instant.now();
+                            let instant = Instant::now();
 
                             rayon::scope(|s| {
                                 // capture a shadowed version of layer_data.
@@ -557,7 +557,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                         assert_eq!(base_data.len(), nodes_count);
                         assert_eq!(tree_len, config.size.expect("config size failure"));
 
-                        let instant = Instant.now();
+                        let instant = Instant::now();
 
                         // Persist the base and tree data to disk based using the current store config.
                         let tree_c_store =
