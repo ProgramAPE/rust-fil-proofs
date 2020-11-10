@@ -3,6 +3,7 @@ use std::io::Write;
 use std::marker::PhantomData;
 use std::path::{Path, PathBuf};
 use std::sync::{mpsc, Arc, RwLock};
+use std::time::Instant;
 
 use anyhow::Context;
 use bellperson::bls::Fr;
@@ -459,6 +460,9 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                             let mut layer_data: Vec<Vec<Fr>> =
                                 vec![Vec::with_capacity(chunked_nodes_count); layers];
 
+                            info!("start chunked data copy at {}", node_index);
+                            let instant = Instant.now();
+
                             rayon::scope(|s| {
                                 // capture a shadowed version of layer_data.
                                 let layer_data: &mut Vec<_> = &mut layer_data;
@@ -479,6 +483,9 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                                 });
                             });
 
+                            info!("chunked data copy used {}", instant.elapsed().as_micros());
+                            
+
                             // Copy out all layer data arranged into columns.
                             for layer_index in 0..layers {
                                 for index in 0..chunked_nodes_count {
@@ -496,6 +503,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                                 nodes_count,
                             );
 
+                            info!("prepared to send data {}", instant.elapsed().as_micros());
                             let is_final = node_index == nodes_count;
                             builder_tx
                                 .send((columns, is_final))
@@ -549,6 +557,8 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                         assert_eq!(base_data.len(), nodes_count);
                         assert_eq!(tree_len, config.size.expect("config size failure"));
 
+                        let instant = Instant.now();
+
                         // Persist the base and tree data to disk based using the current store config.
                         let tree_c_store =
                             DiskStore::<<Tree::Hasher as Hasher>::Domain>::new_with_config(
@@ -595,6 +605,8 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                             .expect("failed to access store for sync")
                             .sync().expect("store sync failure");
                         trace!("done writing tree_c store data");
+
+                        info!("wirite data to disk used {}", instant.elapsed().as_micros());
 
                         // Move on to the next config.
                         i += 1;
