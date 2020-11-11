@@ -526,15 +526,17 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                     let mut i = 0;
                     let mut config = &configs[i];
 
-                    let mut tempColumns:Vec<GenericArray<Fr, ColumnArity>> = Vec::new();
+                    let temp_columns:Vec<GenericArray<Fr, ColumnArity>> = Vec::new();
+                    let mut one_time = true;
 
                     // Loop until all trees for all configs have been built.
                     while i < configs.len() {
                         let (columns, is_final): (Vec<GenericArray<Fr, ColumnArity>>, bool) = builder_rx.recv().expect("failed to recv columns");
 
                         // change the orders for testing
-                        if i==0 && !is_final{
-                            tempColumns = columns;
+                        if one_time {
+                            temp_columns = columns;
+                            one_time = false;
                             continue;
                         }
 
@@ -545,8 +547,8 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                             info!(">>end add columns");
                             continue;
                         };
-
-                        column_tree_builder.add_columns(&tempColumns).expect("failed to add columns");//add the first block data to this
+                        info!("got data len=====>{}",temp_columns.len());
+                        column_tree_builder.add_columns(&temp_columns).expect("failed to add columns");//add the first block data to this
 
                         // If we get here, this is a final column: build a sub-tree.
                         info!(">>start add final columns");
