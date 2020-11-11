@@ -526,7 +526,7 @@ impl<'a, Tree: 'static + MerkleTreeTrait, G: 'static + Hasher> StackedDrg<'a, Tr
                     let mut i = 0;
                     let mut config = &configs[i];
 
-                    let temp_columns:Vec<GenericArray<Fr, ColumnArity>> = Vec::new();
+                    let mut temp_columns:Vec<GenericArray<Fr, ColumnArity>> = Vec::new();
                     let mut one_time = true;
 
                     // Loop until all trees for all configs have been built.
